@@ -1,9 +1,6 @@
-CREATE TABLE Town (
-	Id INT PRIMARY KEY,
-	Name NVARCHAR(20)
-	)
+CREATE DATABASE Bankdb
 
-CREATE TABLE Filial (
+CREATE TABLE Town (
 	Id INT PRIMARY KEY,
 	Name NVARCHAR(20)
 	)
@@ -13,14 +10,18 @@ CREATE TABLE Bank (
 	Name NVARCHAR(20)
 	)
 
-CREATE TABLE BankTownFilial (
-	FilialId INT FOREIGN KEY REFERENCES Filial(id),
-	TownId INT FOREIGN KEY REFERENCES Town(Id),
-	BankId INT FOREIGN KEY REFERENCES Bank(Id) PRIMARY KEY (
-		FilialId,
-		TownId,
-		BankId
-		)
+CREATE TABLE Filial (
+	Id INT PRIMARY KEY,
+	Name NVARCHAR(20),
+	TownId Int FOREIGN KEY REFERENCES Town(Id)
+	)
+
+CREATE TABLE BankTown (
+	Id INT PRIMARY KEY,
+	BankId INT,
+	TownId INT
+	CONSTRAINT FK_Bank FOREIGN KEY (BankId) REFERENCES Bank(Id),
+	CONSTRAINT FK_Town FOREIGN KEY (TownId) REFERENCES Town(Id)
 	)
 
 CREATE TABLE SocialStatus (
@@ -59,12 +60,6 @@ VALUES
 	('3', 'RichBank'),
 	('4', 'ErrorBank');
 
-INSERT INTO Filial (id, name)
-VALUES ('5', 'GOODFilial'),
-	('1', 'BadFilial'),
-	('2', 'PoorFilial'),
-	('3', 'PudgeFilial'),
-	('4', 'RichFilial');
 
 INSERT INTO Town (id, name)
 VALUES ('5', 'Ohaio'),
@@ -73,13 +68,25 @@ VALUES ('5', 'Ohaio'),
 	('3', 'Tokyo'),
 	('4', 'LA');
 
-INSERT INTO BankTownFilial (BankId, TownId, FilialId)
-VALUES ('5', '5', '5'),
-	('1', '2', '1'),
-	('3', '3','4'),
-	('3', '4', '3'),
-	('1', '2', '3'),
-	('4', '2', '2');
+INSERT INTO Filial (id, name,TownId)
+VALUES ('5', 'GOODFilial','1'),
+	('1', 'BadFilial','1'),
+	('2', 'PoorFilial','2'),
+	('3', 'PudgeFilial','3'),
+	('4', 'RichFilial','4');
+
+INSERT INTO BankTown (id,BankId, TownId)
+VALUES ('1','1', '2'),
+	('2','3', '3'),
+	('3','3', '4'),
+	('4','1', '2'),
+	('5','5', '5'),
+	('6','4', '2');
+
+INSERT INTO SocialStatus (id, name)
+VALUES ('1', 'Junior'),
+	('2', 'Disabled'),
+	('3','Rich')
 
 INSERT INTO Client (id, name, SocialStatusId)
 VALUES ('1', 'Person', '1'),
@@ -88,10 +95,7 @@ VALUES ('1', 'Person', '1'),
 	('4', 'Who', '1'),
 	('5', 'Deaf', '2')
 
-INSERT INTO SocialStatus (id, name)
-VALUES ('1', 'Junior'),
-	('2', 'Disabled'),
-	('3','Rich')
+
 
 INSERT INTO Account (id, name, TotalBalance, ClientId, BankId)
 VALUES ('1', 'Person', '300', '1', '1'),
@@ -117,17 +121,17 @@ VALUES ('1', 'VIP', '3', '200'),
 
 SELECT DISTINCT Name
 FROM Bank
-RIGHT JOIN BankTownFilial ON Bank.id = BankTownFilial.BankId
+RIGHT JOIN BankTown ON Bank.id = BankTown.BankId
 WHERE BankId IN (
 		SELECT BankId
-		FROM BankTownFilial
+		FROM BankTown
 		WHERE TownId = '2')
 
 /* поиск по Имени города*/
 SELECT DISTINCT Bank.name
 FROM Bank
-RIGHT JOIN BankTownFilial ON Bank.id = BankTownFilial.BankId
-RIGHT JOIN Town ON BankTownFilial.TownId = Town.Id
+RIGHT JOIN BankTown ON Bank.id = BankTown.BankId
+RIGHT JOIN Town ON BankTown.TownId = Town.Id
 WHERE Town.Name IN (
 		SELECT Town.name
 		FROM Town
